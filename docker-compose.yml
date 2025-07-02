@@ -4,6 +4,7 @@ services:
     ports:
       - "5190:5190"
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5190
     env_file:
       - ./backend/.env

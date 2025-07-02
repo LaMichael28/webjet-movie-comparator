@@ -95,13 +95,13 @@ public partial class Program
         {
             var movies = await svc.GetAllMoviesAsync();
             return Results.Ok(movies);
-        });
+        }).WithOpenApi();
 
         app.MapGet("/api/movies/{id}", async (string id, IMovieService svc) =>
         {
             var movies = await svc.GetMovieDetailsAsync(id);
             return movies != null ? Results.Ok(movies) : Results.NotFound();
-        });
+        }).WithOpenApi();
 
         app.Run();
     }
