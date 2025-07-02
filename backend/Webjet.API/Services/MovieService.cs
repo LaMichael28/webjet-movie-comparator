@@ -95,7 +95,29 @@ public class MovieService : IMovieService
                 Provider = "Filmworld"
             }));
 
-        return all;
+        // Group by Title and merge
+        var merged = all
+            .GroupBy(m => m.Title)
+            .Select(group =>
+            {
+                _logger.LogDebug("Merged {Count} duplicates for title '{Title}'", group.Count(), group.Key);
+
+                // Pick the one with Poster, fallback to first
+                var best = group.FirstOrDefault(m => !string.IsNullOrEmpty(m.Poster)) ?? group.First();
+
+                return new MovieSummary
+                {
+                    ID = best.ID,  // We'll use this ID to link to detail page
+                    Title = best.Title,
+                    Year = best.Year,
+                    Type = best.Type,
+                    Poster = best.Poster,
+                    Provider = "multiple"
+                };
+            })
+            .ToList();
+
+        return merged;
     }
 
     public async Task<List<MovieDetail>> GetMovieDetailsAsync(string id)

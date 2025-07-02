@@ -5,15 +5,43 @@ import { MovieDetailViewModel } from '../types';
 
 function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
+
+  const [error, setError] = useState<string | null>(null);
   const [movie, setMovie] = useState<MovieDetailViewModel | null>(null);
 
   useEffect(() => {
     if (id) {
-      fetchMovieDetail(id).then(setMovie).catch(console.error);
+      fetchMovieDetail(id)
+        .then(setMovie)
+        .catch(err => {
+          console.error(err);
+          setError("Movie details could not be loaded.");
+        });
     }
   }, [id]);
 
-  if (!movie) return <p>Loading...</p>;
+  if (!movie) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-2">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+        <p className="text-gray-600">Loading movie details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 p-8">
+        <p className="font-semibold">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const cheapest = movie.prices.reduce((a, b) => (a.price < b.price ? a : b));
 
@@ -25,8 +53,8 @@ function MovieDetailPage() {
         alt={movie.title}
         className="w-48 h-[300px] object-cover mb-4 rounded"
         onError={(e) =>
-          (e.currentTarget.src =
-            'https://www.prokerala.com/movies/assets/img/no-poster-available.jpg')
+        (e.currentTarget.src =
+          'https://www.prokerala.com/movies/assets/img/no-poster-available.jpg')
         }
       />
       <h2 className="text-xl font-semibold mb-2">Prices:</h2>

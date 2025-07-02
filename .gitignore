@@ -1,0 +1,39 @@
+# Node
+node_modules/
+*.log
+.env
+frontend/.env
+backend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# DotNet
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Docker
+**/Dockerfile.*
+.dockerignore
+
+# Logs
+Logs/
+*.log
+*.out
+
+# VSCode
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Tests
+TestResults/
+
+# Avoid committing token files
+**/*token*
+**/secrets.*

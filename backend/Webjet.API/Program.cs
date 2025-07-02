@@ -22,6 +22,8 @@ public partial class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddEnvironmentVariables();
+
         // Add services to the container.
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         // builder.Services.AddOpenApi();
@@ -30,11 +32,18 @@ public partial class Program
 
         builder.Services.AddMemoryCache();
 
+        //var token = "sjd1HfkjU83ksdsm3802k";
+        //var token = builder.Configuration["WebjetApiToken"];
+        var token = Environment.GetEnvironmentVariable("WEBJET_API_TOKEN");
+
+        Console.WriteLine("Token: " + token);
+
         // Register a resilient HttpClient
         builder.Services.AddHttpClient("WebjetAPI", client =>
         {
             client.BaseAddress = new Uri("http://webjetapitest.azurewebsites.net/");
-            client.DefaultRequestHeaders.Add("x-access-token", "sjd1HfkjU83ksdsm3802k");
+            //client.DefaultRequestHeaders.Add("x-access-token", "sjd1HfkjU83ksdsm3802k");
+            client.DefaultRequestHeaders.Add("x-access-token", token);
             client.Timeout = TimeSpan.FromSeconds(3);
         })
         // Add retry with exponential backoff
