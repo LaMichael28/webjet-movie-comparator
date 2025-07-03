@@ -1,14 +1,15 @@
-// src/pages/HomePage.jsx
+// src/pages/MoviesPage.jsx
 import React, { useEffect, useState } from 'react';
 import MovieList from '../components/MovieList';
 import axios from 'axios';
 
 const MoviesPage = () => {
   const [error, setError] = useState<string | null>(null);
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [movies, setMovies] = useState([]); // Stores movie list from API
+  const [loading, setLoading] = useState(true); // Loading state for skeleton UI
 
   useEffect(() => {
+    // Fetch movie list from backend on initial render
     setError(null);
     axios
       .get(`${process.env.REACT_APP_API_BASE}/api/movies`)
@@ -21,6 +22,7 @@ const MoviesPage = () => {
   }, []);
 
   if (loading) {
+    // Show loading skeletons while fetching
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
         {Array.from({ length: 8 }).map((_, idx) => (
@@ -38,6 +40,7 @@ const MoviesPage = () => {
   }
 
   if (error) {
+    // Show error message with retry button
     return (
       <div className="text-center text-red-600 p-8">
         <p className="font-semibold">{error}</p>
@@ -51,6 +54,7 @@ const MoviesPage = () => {
     );
   }
 
+  // Render movie list when loaded successfully
   return (
     <div>
       <h1 className="text-2xl font-bold text-center mt-4">Movies</h1>

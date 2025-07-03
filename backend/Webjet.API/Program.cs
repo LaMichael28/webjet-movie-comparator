@@ -12,6 +12,7 @@ public partial class Program
 {
     public static void Main(string[] args)
     {
+        // Configure Serilog for console + daily rolling file logs
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .Enrich.FromLogContext()
@@ -32,13 +33,13 @@ public partial class Program
 
         builder.Services.AddMemoryCache();
 
-        //var token = "sjd1HfkjU83ksdsm3802k";
+        // Get the Webjet API token from environment variable
         //var token = builder.Configuration["WebjetApiToken"];
         var token = Environment.GetEnvironmentVariable("WEBJET_API_TOKEN");
 
         Console.WriteLine("Token: " + token);
 
-        // Register a resilient HttpClient
+        // Register a named HttpClient with retry and circuit breaker policies
         builder.Services.AddHttpClient("WebjetAPI", client =>
         {
             client.BaseAddress = new Uri("http://webjetapitest.azurewebsites.net/");
@@ -46,7 +47,7 @@ public partial class Program
             client.DefaultRequestHeaders.Add("x-access-token", token);
             client.Timeout = TimeSpan.FromSeconds(3);
         })
-        // Add retry with exponential backoff
+        // Retry failed requests up to 3 times with exponential backoff
         .AddPolicyHandler(HttpPolicyExtensions
             .HandleTransientHttpError()
             .WaitAndRetryAsync(
@@ -58,7 +59,7 @@ public partial class Program
                             retryAttempt, timespan.TotalSeconds,
                             outcome.Exception?.Message ?? outcome.Result.StatusCode.ToString());
                 }))
-        // Add circuit breaker
+        // Break the circuit after 3 failures for 15 seconds
         .AddPolicyHandler(HttpPolicyExtensions
             .HandleTransientHttpError()
             .CircuitBreakerAsync(
@@ -67,6 +68,7 @@ public partial class Program
 
         builder.Services.AddScoped<IMovieService, MovieService>();
 
+        // Allow frontend requests from localhost:3000 (React app)
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend", policy =>
@@ -91,12 +93,14 @@ public partial class Program
 
         app.UseCors("AllowFrontend");
 
+        // Endpoint to get merged list of movies
         app.MapGet("/api/movies", async (IMovieService svc) =>
         {
             var movies = await svc.GetAllMoviesAsync();
             return Results.Ok(movies);
         }).WithOpenApi();
 
+        // Endpoint to get detailed pricing for a movie
         app.MapGet("/api/movies/{id}", async (string id, IMovieService svc) =>
         {
             var movies = await svc.GetMovieDetailsAsync(id);

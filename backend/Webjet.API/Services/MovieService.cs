@@ -23,6 +23,7 @@ public class MovieService : IMovieService
     {
         var cacheKey = $"movies_{provider}";
 
+        // Try to retrieve the movie list from memory cache first
         if (_cache.TryGetValue<MovieListResponse>(cacheKey, out var cachedResponse))
         {
             _logger.LogInformation("Cache HIT for {CacheKey}", cacheKey);
@@ -34,6 +35,7 @@ public class MovieService : IMovieService
         try
         {
             var client = _httpClientFactory.CreateClient("WebjetAPI");
+            // Call the third-party provider API if cache is empty (cache miss)
             var response = await client.GetAsync($"api/{provider}/movies");
             response.EnsureSuccessStatusCode();
 
@@ -44,7 +46,7 @@ public class MovieService : IMovieService
                 PropertyNameCaseInsensitive = true
             });
 
-            // Only cache if the response is valid and has data
+            // Only cache the result if movies were returned (non-empty list)
             if (deserialized?.Movies != null && deserialized.Movies.Count > 0)
             {
                 _logger.LogInformation("Fetched {Count} movies from {Provider}", deserialized.Movies.Count, provider);
@@ -66,6 +68,7 @@ public class MovieService : IMovieService
 
     public async Task<List<MovieSummary>> GetAllMoviesAsync()
     {
+        // Fetch movies from both providers in parallel
         var cinemaTask = GetMovies("cinemaworld");
         var filmTask = GetMovies("filmworld");
 
@@ -95,14 +98,14 @@ public class MovieService : IMovieService
                 Provider = "Filmworld"
             }));
 
-        // Group by Title and merge
+        // Group by movie title to merge duplicates across providers
         var merged = all
             .GroupBy(m => m.Title)
             .Select(group =>
             {
                 _logger.LogDebug("Merged {Count} duplicates for title '{Title}'", group.Count(), group.Key);
 
-                // Pick the one with Poster, fallback to first
+                // Use the first poster found as the primary (some providers may return null)
                 var best = group.FirstOrDefault(m => !string.IsNullOrEmpty(m.Poster)) ?? group.First();
 
                 return new MovieSummary
@@ -122,11 +125,13 @@ public class MovieService : IMovieService
 
     public async Task<List<MovieDetail>> GetMovieDetailsAsync(string id)
     {
+        // Extract the numeric part of the movie ID (e.g., from cw123 -> 123)
         var match = Regex.Match(id, @"\d+$");
         if (!match.Success)
             return new List<MovieDetail>();
 
         var numericId = match.Value;
+        // Construct full provider-specific IDs (e.g., cw123, fw123)
         var ids = new List<(string Provider, string Id)>
         {
             ("cinemaworld", $"cw{numericId}"),
@@ -137,6 +142,7 @@ public class MovieService : IMovieService
         {
             var cacheKey = $"movie_{movieId}";
 
+            // Try to get detailed movie info from cache first
             if (_cache.TryGetValue<MovieDetail>(cacheKey, out var cachedDetail))
             {
                 _logger.LogInformation("Cache HIT for detail {MovieId}", movieId);
@@ -172,7 +178,7 @@ public class MovieService : IMovieService
                 if (deserialized == null)
                     return null;
 
-                // deserialized.ID = movieId;
+                // If fetched successfully, enrich with provider name and return
                 deserialized.Provider = provider;
 
                 return deserialized;

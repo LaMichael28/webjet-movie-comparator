@@ -20,7 +20,6 @@ const MovieCard = ({ movie }) => {
             <div className="mt-2">
                 <h3 className="text-lg font-bold">{movie.title}</h3>
                 <p className="text-sm text-gray-600">{movie.year}</p>
-                {/* <p className="text-green-600 font-semibold">From ${movie.cheapestPrice}</p> */}
                 <Link
                     to={`/movie/${movie.id}`}
                     className="inline-block mt-2 text-blue-500 underline"

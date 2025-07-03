@@ -12,6 +12,7 @@ function MovieDetailPage() {
   const [movie, setMovie] = useState<MovieDetailViewModel | null>(null);
 
   useEffect(() => {
+    // Fetch movie detail on mount or when ID changes
     if (id) {
       fetchMovieDetail(id)
         .then(setMovie)
@@ -22,6 +23,7 @@ function MovieDetailPage() {
     }
   }, [id]);
 
+  // Show loading spinner while waiting for movie data
   if (!movie) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-2">
@@ -31,6 +33,7 @@ function MovieDetailPage() {
     );
   }
 
+  // Show fallback error UI if fetch failed
   if (error) {
     return (
       <div className="text-center text-red-600 p-8">
@@ -45,6 +48,7 @@ function MovieDetailPage() {
     );
   }
 
+  // Determine cheapest price from provider list
   const cheapest = movie.prices.reduce((a, b) => (a.price < b.price ? a : b));
 
   return (
@@ -52,6 +56,7 @@ function MovieDetailPage() {
       <h1 className="text-3xl font-extrabold mb-6 text-center">{movie.title}</h1>
 
       <div className="flex flex-col md:flex-row gap-6">
+        {/* Movie Poster */}
         <img
           src={movie.poster}
           alt={movie.title}
@@ -62,6 +67,7 @@ function MovieDetailPage() {
           }
         />
 
+        {/* Price List */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Available Prices</h2>
           <ul className="space-y-3">
@@ -85,6 +91,7 @@ function MovieDetailPage() {
         </div>
       </div>
 
+      {/* Navigation: Back button */}
       <button
         onClick={() => navigate(-1)}
         className="mt-6 inline-flex items-center px-4 py-2 font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 rounded-lg transition shadow-sm"
