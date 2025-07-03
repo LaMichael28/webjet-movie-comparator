@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Movie, MovieDetailItem, MovieDetailViewModel } from './types';
 
 import api from './apiClient';

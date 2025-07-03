@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { fetchMovieDetail } from '../api';
 import { MovieDetailViewModel } from '../types';
 
 function MovieDetailPage() {
+  const navigate = useNavigate();
+
   const { id } = useParams<{ id: string }>();
 
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ function MovieDetailPage() {
         <p className="font-semibold">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded"
+          className="mt-4 px-5 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-md transition"
         >
           Retry
         </button>
@@ -46,31 +48,49 @@ function MovieDetailPage() {
   const cheapest = movie.prices.reduce((a, b) => (a.price < b.price ? a : b));
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">{movie.title}</h1>
-      <img
-        src={movie.poster}
-        alt={movie.title}
-        className="w-48 h-[300px] object-cover mb-4 rounded"
-        onError={(e) =>
-        (e.currentTarget.src =
-          'https://www.prokerala.com/movies/assets/img/no-poster-available.jpg')
-        }
-      />
-      <h2 className="text-xl font-semibold mb-2">Prices:</h2>
-      <ul className="space-y-2">
-        {movie.prices.map((p) => (
-          <li key={p.provider} className="flex justify-between">
-            <span>{p.provider}</span>
-            <span>
-              ${p.price?.toFixed(2)}{' '}
-              {p.provider === cheapest.provider && (
-                <strong className="text-green-600">🟢 Cheapest</strong>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
+    <div className="p-6 max-w-3xl mx-auto bg-white rounded-lg shadow-md">
+      <h1 className="text-3xl font-extrabold mb-6 text-center">{movie.title}</h1>
+
+      <div className="flex flex-col md:flex-row gap-6">
+        <img
+          src={movie.poster}
+          alt={movie.title}
+          className="w-full md:w-48 h-[320px] object-cover rounded-lg shadow-md self-center"
+          onError={(e) =>
+          (e.currentTarget.src =
+            'https://www.prokerala.com/movies/assets/img/no-poster-available.jpg')
+          }
+        />
+
+        <div className="flex-1 flex flex-col">
+          <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Available Prices</h2>
+          <ul className="space-y-3">
+            {movie.prices.map((p) => (
+              <li
+                key={p.provider}
+                className="flex justify-between items-center p-3 border rounded-lg shadow-sm hover:shadow-lg transition cursor-default"
+              >
+                <span className="font-medium">{p.provider}</span>
+                <span className="text-lg font-semibold flex items-center space-x-2">
+                  <span>${p.price.toFixed(2)}</span>
+                  {p.provider === cheapest.provider && (
+                    <span className="text-green-600 font-bold" title="Cheapest option">
+                      🟢 Cheapest
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <button
+        onClick={() => navigate(-1)}
+        className="mt-6 inline-flex items-center px-4 py-2 font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 rounded-lg transition shadow-sm"
+      >
+        Back
+      </button>
     </div>
   );
 }
